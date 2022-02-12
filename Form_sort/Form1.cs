@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Threading;
 
+
 namespace Form_sort
 {
     public partial class Form1 : Form
@@ -17,13 +18,32 @@ namespace Form_sort
         Graphics ins_g;
         bool bb_can;
         bool ins_can;
-        //?? tạo mảng  random
-        int[] arr = { 64, 34, 25, 12, 22, 11, 90, 50 };
+        Bubble bb = new Bubble();
+        Insert ins = new Insert();
+        
+        
+
+        static public int[] RandomNum(int n)
+        {
+            Random rd = new Random();
+            int[] a = new int[n];
+            a[0] = rd.Next(5);
+
+            for (int i = 1; i < n; i++)
+            {
+                a[i] =  rd.Next(100);
+            }
+            return a;
+        }
+
         public Form1()
         {
             InitializeComponent();
             bb_can = false;
-        
+            ins_can = false;
+            bb_g = Bubble_panel.CreateGraphics();
+            ins_g = Insert_panel.CreateGraphics();
+            
         }
         public class Sort
         {
@@ -41,7 +61,8 @@ namespace Form_sort
         };
         public class Bubble : Sort
         {
-           
+
+            int fps = 50;
             public void bb_sort(int[] arr, Graphics g)
             {
                 int n = arr.Length;
@@ -52,7 +73,7 @@ namespace Form_sort
                     {
                         if (arr[j] > arr[j + 1])
                         {
-                            // swap temp and arr[i]
+                            
                             int temp = arr[j];
                             arr[j] = arr[j + 1];
                             arr[j + 1] = temp;
@@ -60,17 +81,19 @@ namespace Form_sort
                         g.Clear(Color.White);
                         
                         vemang(arr, g);
-                        Thread.Sleep(1000);
-                        //timer1.Tick += timer1_Tick;
+                        Thread.Sleep(fps);
+                        
 
                     }
 
                 }
 
             }
+
         }
         public class Insert : Sort
         {
+            int fps = 100;
             public void ins_sort(int[] arr, Graphics g)
             {
                 int n = arr.Length;
@@ -97,61 +120,80 @@ namespace Form_sort
                     g.Clear(Color.White);
                     vemang(arr, g);
                     // goi tick de ve mang
-                    Thread.Sleep(1000);
+                    Thread.Sleep(fps);
                     //timer1.Tick = vemang(arr, g);
                     arr[j + 1] = key;
                 }
             }
         }
-        Bubble bb = new Bubble();
-        Insert ins = new Insert();
+        
         private void button1_Click(object sender, EventArgs e)
         {
-            Task t1 = new Task(
-                    () => {
-                        if (bb_can == true)
-                        {
-                            bb_g = Bubble_panel.CreateGraphics();
-                            ///tạo bubble sort
-                            bb.bb_sort(arr, bb_g);
-
-                            //bb_g.DrawLine(Pens.Black, 0, 0, 100, 100);
-                            bb_can = false;
-                        }
-                        else
-                        {
-                            // bb_g.Clear(Color.White);
-                            bb_can = true;
-                        }
-                    });
-            t1.Start();
+            Bubble_button.Enabled = false;
            
-        }
+            if (Bubble_button.Text == "Delete")
+            {
+                Bubble_button.Text = "Sort";
+            }
+            else
+            {
+                Bubble_button.Text = "Sorting ...";
+            }
+            int n = 10;
+            int[] arr1 = RandomNum(n);
+            int[] arr2 = new int[n];
+            Array.Copy(arr1, arr2, arr1.Length);
+            //bb.bb_sort(arr, bb_g);
+            Task t1 = new Task(() =>
+            {
+                if (bb_can == false)
+                {
 
-        private void Insert_button_Click(object sender, EventArgs e)
-        {
+                    ///tạo bubble sort
+                    bb.bb_sort(arr1, bb_g);
+
+                    //bb_g.DrawLine(Pens.Black, 0, 0, 100, 100);
+                    bb_can = true;
+                }
+                else
+                {
+                    bb_g.Clear(Color.White);
+                    bb_can = false;
+                }
+            }
+            );
             Task t2 = new Task(
                     () => {
-                        if (ins_can == true)
+                        if (ins_can == false)
                         {
                             ins_g = Insert_panel.CreateGraphics();
                             ///tạo bubble sort
 
-                            ins.ins_sort(arr, ins_g);
+                            ins.ins_sort(arr2, ins_g);
                             //bb_g.DrawLine(Pens.Black, 0, 0, 100, 100);
-                            ins_can = false;
+                            ins_can = true;
                         }
                         else
                         {
-                            // ins_g.Clear(Color.White);
-                            ins_can = true;
+                            ins_g.Clear(Color.White);
+                            ins_can = false;
                         }
 
                     }
                     );
-            t2.Start();
+            t1.Start();
             
+            t2.Start();
+            Task.WaitAll(t1, t2);
+            Bubble_button.Enabled = true;
+            if (Bubble_button.Text == "Sorting ...")
+            {
+                Bubble_button.Text = "Delete";
+            }
+
         }
+
+        
 
         
     }
